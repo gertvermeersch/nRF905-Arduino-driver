@@ -214,10 +214,13 @@ void NRF905::TxPacket(char *TxAddress, char *TxRxBuf)
 	digitalWrite(CSN,LOW);
 	// Write payload command
 	SPI.transfer(WTP);
+	Serial.print("deep debug NRF905.cpp: ");
 	for (i=0;i<32;i++){
 	    // Write 32 bytes Tx data
 		SPI.transfer(TxRxBuf[i]);
+		Serial.print(TxRxBuf[i],DEC);
 	}
+	Serial.print("\n");
 	digitalWrite(CSN,HIGH);
     // Spi enable for write a spi command
 	digitalWrite(CSN,LOW);
@@ -273,10 +276,13 @@ void NRF905::RxPacket(char *TxRxBuffer)
     delay(1);
 	SPI.transfer(RRP);
     delay(1);
+    Serial.print("deep debug NRF905.cpp: ");
 	for (i = 0 ;i < 32 ;i++){
-		TxRxBuffer[i]=SPI.transfer(NULL);;
+		TxRxBuffer[i]=SPI.transfer(NULL);
+		Serial.print(TxRxBuffer[i],DEC);
         delay(1);
 	}
+	Serial.print("\n");
 	digitalWrite(CSN,HIGH);
     delay(1);
 	digitalWrite(TRX_CE,HIGH);
