@@ -40,10 +40,10 @@ NRF905::NRF905(void)
 {
     TXEN=5;
     TRX_CE=4;
-    PWR=3;
+    PWR=8;
     CSN=10;
     AM=9;
-    DR=8;
+    DR=3;
     CD=7;
 }
 // NRF905::NRF905(int css)
@@ -193,23 +193,27 @@ void NRF905::RX(char *TxRxBuf, char *RxAddress) //receive and change own address
 
 void NRF905::TX(char *TxRxBuf, char *TxAddress)
 {
+	noInterrupts(); //DR is used so we disable it to avoid false "new message" positives 
     set_tx();
     delay(1);
     // Send data by nRF905
     TxPacket(TxAddress, TxRxBuf);
+	set_rx();
+	interrupts();
 }
 
 void NRF905::TX(char *TxRxBuf)
 {
+	noInterrupts();
     set_tx();
     delay(1);
     // Send data by nRF905
     TxPacket(config_info_buf+5, TxRxBuf);
-
+	set_rx(); //switch back to receiving mode to set DR low
+	interrupts(); //re-enable the interrupts, DR is LOW so safe to enable again.
 }
 
-void NRF905::TxPacket(char *TxAddress, char *TxRxBuf)
-{
+void NRF905::TxPacket(char *TxAddress, char *TxRxBuf) {
 	int i;
 	digitalWrite(CSN,LOW);
 	// Write payload command
@@ -237,6 +241,8 @@ void NRF905::TxPacket(char *TxAddress, char *TxRxBuf)
 	digitalWrite(TRX_CE,HIGH);
 	delay(1);
 	digitalWrite(TRX_CE,LOW);
+	while(digitalRead(DR) == LOW); //wait for the packet to be sent
+	
 }
 
 void NRF905::set_tx(void)
@@ -270,6 +276,7 @@ char NRF905::check_ready(void)
 
 void NRF905::RxPacket(char *TxRxBuffer)
 {
+	noInterrupts();
 	int i;
     digitalWrite(TRX_CE,LOW);
 	digitalWrite(CSN,LOW);
@@ -287,6 +294,7 @@ void NRF905::RxPacket(char *TxRxBuffer)
     delay(1);
 	digitalWrite(TRX_CE,HIGH);
 	delay(1);
+	interrupts();
 }
 
 
