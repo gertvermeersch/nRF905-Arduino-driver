@@ -13,14 +13,7 @@ char config_info_buf[10]={
         0x58,                   //CRC enable,8bit CRC,external clock disable,16MHZ Oscillator
 };
 
-// unsigned char config_info_buf[10]={ //868Mhz band doesn't work so well
-//         0x76,                   //CH_NO,868,4 MHZ
-//         0x0E,                   //output power 10db, resend disable, Current Normal operation
-//         0x44,                   //4-byte address
-//         0x20,0x20,              //receive or send data length 32 bytes
-//         0xCC,0xCC,0xCC,0xCC,    //receiving address
-//         0x58,                   //CRC enable,8bit CRC,external clock disable,16MHZ Oscillator
-// };
+
 
 unsigned int freq_tab[10] = {
     0x13e,
@@ -193,27 +186,28 @@ void NRF905::RX(char *TxRxBuf, char *RxAddress) //receive and change own address
 
 void NRF905::TX(char *TxRxBuf, char *TxAddress)
 {
-	noInterrupts(); //DR is used so we disable it to avoid false "new message" positives 
+	
     set_tx();
     delay(1);
     // Send data by nRF905
     TxPacket(TxAddress, TxRxBuf);
 	set_rx();
-	interrupts();
+	
 }
 
 void NRF905::TX(char *TxRxBuf)
 {
-	noInterrupts();
+	
     set_tx();
     delay(1);
     // Send data by nRF905
     TxPacket(config_info_buf+5, TxRxBuf);
 	set_rx(); //switch back to receiving mode to set DR low
-	interrupts(); //re-enable the interrupts, DR is LOW so safe to enable again.
+	
 }
 
 void NRF905::TxPacket(char *TxAddress, char *TxRxBuf) {
+	cli(); //timing critical
 	int i;
 	digitalWrite(CSN,LOW);
 	// Write payload command
@@ -242,7 +236,7 @@ void NRF905::TxPacket(char *TxAddress, char *TxRxBuf) {
 	delay(1);
 	digitalWrite(TRX_CE,LOW);
 	while(digitalRead(DR) == LOW); //wait for the packet to be sent
-	
+	sei(); //re-enable the interrupts, DR is LOW so safe to enable again.
 }
 
 void NRF905::set_tx(void)
@@ -264,19 +258,19 @@ void NRF905::set_rx(void)
 	delayMicroseconds(800);
 };
 
-char NRF905::check_ready(void)
+bool NRF905::check_ready(void)
 {
-    if(digitalRead(DR) == HIGH)	{
-		return 1;
+    if(digitalRead(DR) == HIGH && digitalRead(AM) == HIGH)	{
+		return true;
 	}
 	else{
-		return 0;
+		return false;
 	}
 }
 
 void NRF905::RxPacket(char *TxRxBuffer)
 {
-	noInterrupts();
+	cli(); //timing critical, no interrupts
 	int i;
     digitalWrite(TRX_CE,LOW);
 	digitalWrite(CSN,LOW);
@@ -294,7 +288,7 @@ void NRF905::RxPacket(char *TxRxBuffer)
     delay(1);
 	digitalWrite(TRX_CE,HIGH);
 	delay(1);
-	interrupts();
+	sei();
 }
 
 

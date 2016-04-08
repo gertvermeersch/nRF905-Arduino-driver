@@ -48,7 +48,7 @@ public:
     void RX(char *TxRxBuf, char *RxAddress);
     void TX(char *TxRxBuf, char *TxAddress);
     void TX(char *TxRxBuf);
-    char check_ready(void);
+    bool check_ready(void);
     void set_rx(void);
     void set_tx(void);
 
