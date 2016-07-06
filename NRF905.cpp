@@ -112,7 +112,7 @@ void NRF905::write_config(nrf905_freq_type freq_band)
             config_info_buf[1] &= ~0x01;
         }
     }*/
-	 
+
     // Spi enable for write a spi command
 	digitalWrite(CSN,LOW);
 	/** send write configuration command */
@@ -124,7 +124,7 @@ void NRF905::write_config(nrf905_freq_type freq_band)
 	digitalWrite(CSN,HIGH);					// Disable Spi
 }
 
-void NRF905::write_config_address(char *address) 
+void NRF905::write_config_address(char *address)
 {
 	config_info_buf[5] = address[0];
 	config_info_buf[6] = address[1];
@@ -186,28 +186,30 @@ void NRF905::RX(char *TxRxBuf, char *RxAddress) //receive and change own address
 
 void NRF905::TX(char *TxRxBuf, char *TxAddress)
 {
-	
+
     set_tx();
     delay(1);
     // Send data by nRF905
     TxPacket(TxAddress, TxRxBuf);
 	set_rx();
-	
+
 }
 
 void NRF905::TX(char *TxRxBuf)
 {
-	
+
     set_tx();
     delay(1);
     // Send data by nRF905
     TxPacket(config_info_buf+5, TxRxBuf);
 	set_rx(); //switch back to receiving mode to set DR low
-	
+
 }
 
 void NRF905::TxPacket(char *TxAddress, char *TxRxBuf) {
 	cli(); //timing critical
+  //Wait for clear skies
+  while(digitalRead(CD));
 	int i;
 	digitalWrite(CSN,LOW);
 	// Write payload command
@@ -277,13 +279,10 @@ void NRF905::RxPacket(char *TxRxBuffer)
     delay(1);
 	SPI.transfer(RRP);
     delay(1);
-    //Serial.print("deep debug NRF905.cpp: ");
 	for (i = 0 ;i < 32 ;i++){
 		TxRxBuffer[i]=SPI.transfer(NULL);
-	//	Serial.print(TxRxBuffer[i],DEC);
         delay(1);
 	}
-	//Serial.print("\n");
 	digitalWrite(CSN,HIGH);
     delay(1);
 	digitalWrite(TRX_CE,HIGH);
@@ -291,7 +290,11 @@ void NRF905::RxPacket(char *TxRxBuffer)
 	sei();
 }
 
+void NRF905::powerUp(void) {
+  digitalWrite(PWR, HIGH);
+  delay(3); //max delay
+}
 
-
-
-
+void NRF905::powerDown(void) {
+  digitalWrite(PWR, LOW);
+}

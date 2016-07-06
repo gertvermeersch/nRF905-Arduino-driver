@@ -36,7 +36,7 @@ class NRF905
 {
 public:
     NRF905(void);
-    
+
     NRF905(int txen, int trx_ce, int pwr, int csn, int am, int dr, int cd);
 	//NRF905(int css);
     void init();
@@ -51,6 +51,8 @@ public:
     bool check_ready(void);
     void set_rx(void);
     void set_tx(void);
+    void powerDown(void);
+    void powerUp(void);
 
 private:
     void RxPacket(char *TxRxBuffer);
@@ -71,5 +73,3 @@ private:
 //extern NRF905 nrf905;
 
 #endif
-
-
